@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Группа 12П — Статистика успеваемости</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Golos+Text:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --card: #111827;
+    --card2: #1a2235;
+    --accent: #4f8ef7;
+    --accent2: #38d9a9;
+    --accent3: #f4a261;
+    --text: #e8eaf0;
+    --muted: #8892a4;
+    --border: rgba(79,142,247,0.15);
+    --glow: rgba(79,142,247,0.25);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Golos Text', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 15% 20%, rgba(79,142,247,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 85% 80%, rgba(56,217,169,0.09) 0%, transparent 55%);
+    pointer-events: none;
+  }
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,14,26,0.85);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 36px;
+    height: 64px;
+  }
+  .nav-logo {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800; font-size: 1.1rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+  .nav-links { display: flex; gap: 6px; }
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.875rem; font-weight: 500;
+    padding: 6px 14px; border-radius: 8px;
+    transition: all 0.2s;
+  }
+  .nav-links a:hover, .nav-links a.active {
+    color: var(--text);
+    background: rgba(79,142,247,0.12);
+  }
+  section { position: relative; z-index: 1; }
+  .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+  #hero {
+    min-height: 88vh;
+    display: flex; align-items: center;
+    padding: 80px 0 60px;
+  }
+  .hero-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px; align-items: center;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(79,142,247,0.1);
+    border: 1px solid rgba(79,142,247,0.3);
+    border-radius: 100px;
+    padding: 6px 16px; font-size: 0.78rem;
+    color: var(--accent); font-weight: 600;
+    margin-bottom: 24px;
+    letter-spacing: 0.5px;
+  }
+  .hero-badge span { width: 7px; height: 7px; border-radius: 50%; background: var(--accent2); animation: blink 1.4s infinite; }
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
+  .hero-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(2.2rem, 4.5vw, 3.4rem);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .hero-title .g { background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero-subtitle { color: var(--muted); font-size: 1.05rem; line-height: 1.7; margin-bottom: 36px; }
+  .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 26px; border-radius: 12px;
+    font-size: 0.9rem; font-weight: 600;
+    text-decoration: none; cursor: pointer;
+    transition: all 0.25s; border: none;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #3b7de8);
+    color: #fff;
+    box-shadow: 0 4px 24px rgba(79,142,247,0.35);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(79,142,247,0.5); }
+  .btn-ghost {
+    background: var(--card2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .hero-stats {
+    display: grid; grid-template-columns: repeat(2,1fr); gap: 16px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 32px var(--glow); }
+  .stat-num {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 2.2rem; font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .stat-label { color: var(--muted); font-size: 0.82rem; margin-top: 4px; }
+  .section-header { text-align: center; margin-bottom: 48px; }
+  .section-tag {
+    display: inline-block;
+    background: rgba(56,217,169,0.1);
+    border: 1px solid rgba(56,217,169,0.25);
+    color: var(--accent2);
+    border-radius: 100px;
+    padding: 4px 14px; font-size: 0.75rem; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 700; margin-bottom: 12px;
+  }
+  .section-desc { color: var(--muted); font-size: 1rem; max-width: 540px; margin: 0 auto; }
+  #teacher { padding: 100px 0; }
+  .teacher-card {
+    background: linear-gradient(135deg, var(--card), var(--card2));
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 48px;
+    display: flex; align-items: center; gap: 48px;
+    max-width: 860px; margin: 0 auto;
+    box-shadow: 0 0 60px var(--glow);
+  }
+  .teacher-avatar {
+    width: 140px; height: 140px; flex-shrink: 0;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Unbounded', sans-serif;
+    font-size: 2.8rem; font-weight: 800; color: #fff;
+    box-shadow: 0 0 40px rgba(79,142,247,0.4);
+  }
+  .teacher-info h2 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 1.5rem; font-weight: 700; margin-bottom: 6px;
+  }
+  .teacher-role {
+    color: var(--accent2); font-size: 0.9rem; font-weight: 600;
+    margin-bottom: 14px; letter-spacing: 0.3px;
+  }
+  .teacher-desc { color: var(--muted); line-height: 1.7; font-size: 0.95rem; }
+  #students { padding: 100px 0; background: rgba(255,255,255,0.01); }
+  .students-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .student-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex; align-items: center; gap: 16px;
+    transition: all 0.2s;
+    cursor: default;
+  }
+  .student-card:hover {
+    border-color: rgba(79,142,247,0.4);
+    background: var(--card2);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px var(--glow);
+  }
+  .student-num {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.75rem; font-weight: 700;
+    color: var(--accent);
+    background: rgba(79,142,247,0.1);
+    border-radius: 8px;
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .student-name { font-size: 0.9rem; font-weight: 500; line-height: 1.4; }
+  .student-initials {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  #grades { padding: 100px 0; }
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--card);
+  }
+  table {
+    width: 100%; border-collapse: collapse;
+    font-size: 0.82rem; min-width: 900px;
+  }
+  thead tr { background: rgba(79,142,247,0.08); }
+  th {
+    padding: 14px 12px;
+    color: var(--accent);
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.7rem; font-weight: 600;
+    letter-spacing: 0.3px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  th:first-child { text-align: left; padding-left: 20px; }
+  td {
+    padding: 12px; text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: var(--text);
+  }
+  td:first-child { text-align: left; padding-left: 20px; color: var(--text); font-weight: 500; }
+  tbody tr:hover { background: rgba(79,142,247,0.05); }
+  tbody tr:last-child td { border-bottom: none; }
+  .grade { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; }
+  .g5 { background: rgba(56,217,169,0.15); color: var(--accent2); }
+  .g4 { background: rgba(79,142,247,0.15); color: var(--accent); }
+  .g3 { background: rgba(244,162,97,0.15); color: var(--accent3); }
+  .g2 { background: rgba(240,80,80,0.15); color: #f05050; }
+  .gn { background: rgba(136,146,164,0.1); color: var(--muted); }
+  #stats { padding: 100px 0; }
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px; margin-bottom: 40px;
+  }
+  .stats-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .stats-card:hover { transform: translateY(-3px); box-shadow: 0 8px 32px var(--glow); }
+  .stats-num {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 2.6rem; font-weight: 800;
+    margin-bottom: 8px;
+  }
+  .stats-num.blue { background: linear-gradient(135deg, var(--accent), #3b7de8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .stats-num.green { background: linear-gradient(135deg, var(--accent2), #2db894); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .stats-num.orange { background: linear-gradient(135deg, var(--accent3), #e07a3d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .stats-num.red { background: linear-gradient(135deg, #f05050, #e04040); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .stats-label { color: var(--muted); font-size: 0.85rem; }
+  .charts-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 24px;
+  }
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+  }
+  .chart-card h3 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.85rem; font-weight: 600;
+    margin-bottom: 24px; color: var(--text);
+    line-height: 1.4;
+  }
+  .pie-wrap { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+  .pie-legend { display: flex; flex-direction: column; gap: 10px; }
+  .pie-legend-item { display: flex; align-items: center; gap: 10px; font-size: 0.82rem; color: var(--muted); }
+  .pie-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .pie-pct { color: var(--text); font-weight: 600; margin-left: auto; min-width: 36px; text-align: right; }
+  .pie-svg { flex-shrink: 0; }
+  .bar-chart { display: flex; flex-direction: column; gap: 12px; }
+  .bar-row { display: flex; align-items: center; gap: 12px; }
+  .bar-label { font-size: 0.78rem; color: var(--muted); min-width: 120px; }
+  .bar-track { flex: 1; height: 10px; background: rgba(255,255,255,0.06); border-radius: 10px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 10px; }
+  .bar-val { font-size: 0.78rem; color: var(--accent); font-weight: 600; min-width: 36px; text-align: right; }
+  .summary-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .summary-table th { text-align: left; padding: 12px 16px; color: var(--accent); border-bottom: 1px solid var(--border); }
+  .summary-table td { text-align: left; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .summary-table tr:hover { background: rgba(79,142,247,0.05); }
+  footer {
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    padding: 40px 0;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.85rem;
+    position: relative; z-index: 1;
+  }
+  footer .foot-logo {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800; font-size: 1.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
+  }
+  .fade-up { opacity: 0; transform: translateY(28px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .fade-up.visible { opacity: 1; transform: none; }
+  @media(max-width:768px) {
+    nav { padding: 0 16px; }
+    .nav-links { display: none; }
+    .hero-inner { grid-template-columns: 1fr; gap: 40px; }
+    .hero-stats { grid-template-columns: repeat(2,1fr); }
+    .teacher-card { flex-direction: column; text-align: center; padding: 32px 24px; }
+    #hero { min-height: auto; padding: 60px 0 40px; }
+  }
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-logo">12П &middot; НГК</div>
+  <div class="nav-links">
+    <a href="#hero" class="active">Главная</a>
+    <a href="#teacher">Классный руководитель</a>
+    <a href="#students">Студенты</a>
+    <a href="#grades">Успеваемость</a>
+    <a href="#stats">Статистика</a>
+  </div>
+</nav>
+
+<section id="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <div class="fade-up">
+        <div class="hero-badge"><span></span>Нижегородский Губернский Колледж</div>
+        <h1 class="hero-title">Группа <span class="g">12П</span> &mdash; <br>наш курс</h1>
+        <p class="hero-subtitle">Добро пожаловать на сайт группы 12П НГК. Здесь собрана информация о студентах, успеваемости и нашем классном руководителе.</p>
+        <div class="hero-actions">
+          <a href="#students" class="btn btn-primary">Состав группы</a>
+          <a href="#grades" class="btn btn-ghost">Успеваемость</a>
+        </div>
+      </div>
+      <div class="hero-stats fade-up" style="transition-delay:0.15s">
+        <div class="stat-card"><div class="stat-num">24</div><div class="stat-label">Студента в группе</div></div>
+        <div class="stat-card"><div class="stat-num">12</div><div class="stat-label">Предметов</div></div>
+        <div class="stat-card"><div class="stat-num">4,2</div><div class="stat-label">Средний балл группы</div></div>
+        <div class="stat-card"><div class="stat-num">88%</div><div class="stat-label">Успеваемость</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="teacher">
+  <div class="container">
+    <div class="section-header fade-up">
+      <div class="section-tag">Куратор</div>
+      <h2 class="section-title">Классный руководитель</h2>
+    </div>
+    <div class="teacher-card fade-up">
+      <div class="teacher-avatar">ДС</div>
+      <div class="teacher-info">
+        <h2>Дубровская Светлана Владимировна</h2>
+        <div class="teacher-role">Классный руководитель группы 12П</div>
+        <p class="teacher-desc">Опытный педагог и куратор группы 12П Нижегородского Губернского Колледжа. Сопровождает студентов на протяжении всего обучения, помогает в организации учебного процесса и внеурочной деятельности.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="students">
+  <div class="container">
+    <div class="section-header fade-up">
+      <div class="section-tag">Состав</div>
+      <h2 class="section-title">Студенты группы</h2>
+      <p class="section-desc">24 студента группы 12П НГК</p>
+    </div>
+    <div class="students-grid fade-up"></div>
+  </div>
+</section>
+
+<section id="grades">
+  <div class="container">
+    <div class="section-header fade-up">
+      <div class="section-tag">Успеваемость</div>
+      <h2 class="section-title">Сводная ведомость</h2>
+      <p class="section-desc">Период: 16.03.26 &mdash; 21.03.26. Группа 12П</p>
+    </div>
+    <div class="table-wrap fade-up">
+      <table id="gradesTable"></table>
+    </div>
+  </div>
+</section>
+
+<section id="stats">
+  <div class="container">
+    <div class="section-header fade-up">
+      <div class="section-tag">Статистика</div>
+      <h2 class="section-title">Статистика успеваемости группы</h2>
+      <p class="section-desc">Анализ результатов директорского контроля за период 16.03.26 &mdash; 21.03.26</p>
+    </div>
+
+    <div class="stats-grid fade-up">
+      <div class="stats-card">
+        <div class="stats-num blue">4,2</div>
+        <div class="stats-label">Средний балл группы</div>
+      </div>
+      <div class="stats-card">
+        <div class="stats-num green">88%</div>
+        <div class="stats-label">% успеваемости</div>
+      </div>
+      <div class="stats-card">
+        <div class="stats-num orange">46%</div>
+        <div class="stats-label">% качества</div>
+      </div>
+      <div class="stats-card">
+        <div class="stats-num red">3</div>
+        <div class="stats-label">Неуспевающих студента</div>
+      </div>
+    </div>
+
+    <div class="charts-grid fade-up">
+
+      <div class="chart-card">
+        <h3>Распределение оценок по группе</h3>
+        <div class="pie-wrap">
+          <svg class="pie-svg" width="140" height="140" viewBox="0 0 140 140">
+            <circle cx="70" cy="70" r="52" fill="none" stroke="#38d9a9" stroke-width="30" stroke-dasharray="109.29 217.43" stroke-dashoffset="0" transform="rotate(-90 70 70)"/>
+            <circle cx="70" cy="70" r="52" fill="none" stroke="#4f8ef7" stroke-width="30" stroke-dasharray="170.27 156.46" stroke-dashoffset="-109.29" transform="rotate(-90 70 70)"/>
+            <circle cx="70" cy="70" r="52" fill="none" stroke="#f4a261" stroke-width="30" stroke-dasharray="37.96 288.76" stroke-dashoffset="-279.56" transform="rotate(-90 70 70)"/>
+            <circle cx="70" cy="70" r="52" fill="none" stroke="#f05050" stroke-width="30" stroke-dasharray="9.20 317.52" stroke-dashoffset="-317.52" transform="rotate(-90 70 70)"/>
+          </svg>
+          <div class="pie-legend">
+            <div class="pie-legend-item"><div class="pie-dot" style="background:#38d9a9"></div>Отлично (5)<span class="pie-pct">95</span></div>
+            <div class="pie-legend-item"><div class="pie-dot" style="background:#4f8ef7"></div>Хорошо (4)<span class="pie-pct">148</span></div>
+            <div class="pie-legend-item"><div class="pie-dot" style="background:#f4a261"></div>Удовлетворительно (3)<span class="pie-pct">33</span></div>
+            <div class="pie-legend-item"><div class="pie-dot" style="background:#f05050"></div>Неудовлетворительно (2)<span class="pie-pct">8</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h3>Качество успеваемости по категориям</h3>
+        <div class="pie-wrap">
+          <svg class="pie-svg" width="140" height="140" viewBox="0 0 140 140">
+            <circle cx="70" cy="70" r="52" fill="none" stroke="#38d9a9" stroke-width="30" stroke-dasharray="149.75 176.98" stroke-dashoffset="0" transform="rotate(-90 70 70)"/>
+            <circle cx="70" cy="70" r="52" fill="none" stroke="#f05050" stroke-width="30" stroke-dasharray="40.84 285.88" stroke-dashoffset="-149.75" transform="rotate(-90 70 70)"/>
+            <circle cx="70" cy="70" r="52" fill="none" stroke="#f4a261" stroke-width="30" stroke-dasharray="136.14 190.59" stroke-dashoffset="-190.59" transform="rotate(-90 70 70)"/>
+          </svg>
+          <div class="pie-legend">
+            <div class="pie-legend-item"><div class="pie-dot" style="background:#38d9a9"></div>Успевают и имеют 4 и 5<span class="pie-pct">11</span></div>
+            <div class="pie-legend-item"><div class="pie-dot" style="background:#f4a261"></div>Успевают, имеют 3<span class="pie-pct">10</span></div>
+            <div class="pie-legend-item"><div class="pie-dot" style="background:#f05050"></div>Не успевают<span class="pie-pct">3</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card" style="grid-column: 1 / -1;">
+        <h3>Средний балл по дисциплинам</h3>
+        <div class="bar-chart">
+          <div class="bar-row">
+            <span class="bar-label">Литература</span>
+            <div class="bar-track"><div class="bar-fill" style="width:88%;background:linear-gradient(90deg,#4f8ef7,#38d9a9)"></div></div>
+            <span class="bar-val">4,4</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">История</span>
+            <div class="bar-track"><div class="bar-fill" style="width:73%;background:linear-gradient(90deg,#4f8ef7,#38d9a9)"></div></div>
+            <span class="bar-val">3,7</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">География</span>
+            <div class="bar-track"><div class="bar-fill" style="width:83%;background:linear-gradient(90deg,#4f8ef7,#38d9a9)"></div></div>
+            <span class="bar-val">4,2</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Иностранный язык</span>
+            <div class="bar-track"><div class="bar-fill" style="width:83%;background:linear-gradient(90deg,#4f8ef7,#38d9a9)"></div></div>
+            <span class="bar-val">4,2</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Математика</span>
+            <div class="bar-track"><div class="bar-fill" style="width:77%;background:linear-gradient(90deg,#4f8ef7,#38d9a9)"></div></div>
+            <span class="bar-val">3,9</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Информатика</span>
+            <div class="bar-track"><div class="bar-fill" style="width:82%;background:linear-gradient(90deg,#4f8ef7,#38d9a9)"></div></div>
+            <span class="bar-val">4,1</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Физ. культура</span>
+            <div class="bar-track"><div class="bar-fill" style="width:92%;background:linear-gradient(90deg,#4f8ef7,#38d9a9)"></div></div>
+            <span class="bar-val">4,6</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">ОБЖ</span>
+            <div class="bar-track"><div class="bar-fill" style="width:85%;background:linear-gradient(90deg,#4f8ef7,#38d9a9)"></div></div>
+            <span class="bar-val">4,3</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Физика</span>
+            <div class="bar-track"><div class="bar-fill" style="width:75%;background:linear-gradient(90deg,#4f8ef7,#38d9a9)"></div></div>
+            <span class="bar-val">3,8</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Химия</span>
+            <div class="bar-track"><div class="bar-fill" style="width:81%;background:linear-gradient(90deg,#4f8ef7,#38d9a9)"></div></div>
+            <span class="bar-val">4,0</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Биология</span>
+            <div class="bar-track"><div class="bar-fill" style="width:98%;background:linear-gradient(90deg,#4f8ef7,#38d9a9)"></div></div>
+            <span class="bar-val">4,9</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Индивидуальный проект</span>
+            <div class="bar-track"><div class="bar-fill" style="width:79%;background:linear-gradient(90deg,#4f8ef7,#38d9a9)"></div></div>
+            <span class="bar-val">4,0</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-logo">12П &middot; НГК</div>
+  <p>Нижегородский Губернский Колледж &middot; Группа 12П</p>
+  <p style="margin-top:6px">Классный руководитель: Дубровская Светлана Владимировна</p>
+</footer>
+
+<script>
+const students = [
+  "Бубнова Юлия Евгеньевна","Водянова Виктория Олеговна","Воробьёва София Антоновна",
+  "Гуров Александр Владимирович","Даняев Владислав Дмитриевич","Жамалетдинов Тимур Рушанович",
+  "Иволина Татьяна Александровна","Карпова Ярослава Ивановна","Колотин Матвей Александрович",
+  "Кузьмина Арина Андреевна","Лысин Дмитрий Андреевич","Максимов Михаил Максимович",
+  "Маслова Дарья Александровна","Рогожина Полина Дмитриевна","Седова Анна Сергеевна",
+  "Сивякова Анастасия Александровна","Сорокина Диана Сергеевна","Стрельцова Светлана Денисовна",
+  "Царев Егор Вадимович","Шамин Илья Валентинович","Шамшина Елизавета Андреевна",
+  "Шубина Мария Павловна","Шурдалин Виталий Дмитриевич","Яковлева Дарья Сергеевна"
+];
+
+const subjects = ["Литература","История","Обществознание","География","Ин. язык","Математика","Информатика","Физ. культура","ОБЖ","Физика","Химия","Биология","Инд. проект"];
+
+const grades = [
+  [4,4,null,5,5,4,5,5,5,4,5,5,4],[4,3,null,3,3,3,2,4,5,2,2,5,3],
+  [5,4,null,5,5,4,4,5,4,4,4,5,5],[5,5,null,5,5,5,5,4,5,4,5,5,5],
+  [5,4,null,4,5,4,3,4,4,4,4,4,4],[5,4,null,5,4,5,5,5,3,4,5,5,4],
+  [4,4,null,4,5,4,4,5,5,4,4,5,4],[4,3,null,5,4,4,4,5,4,4,5,5,3],
+  [5,4,null,4,4,4,5,4,4,4,5,5,5],[5,4,null,4,4,4,4,5,5,4,4,5,4],
+  [4,3,null,5,4,3,4,5,4,3,4,5,4],[4,3,null,4,3,3,3,5,3,2,2,4,3],
+  [4,4,null,4,4,3,4,5,5,3,3,5,4],[4,4,null,4,4,5,5,5,5,5,5,5,4],
+  [5,4,null,5,4,4,4,5,4,4,4,5,5],[4,4,null,4,4,3,4,4,4,4,5,5,4],
+  [4,4,null,4,4,4,5,5,5,4,5,5,4],[5,4,null,5,4,4,4,5,4,4,4,5,4],
+  [4,3,null,4,4,4,4,4,4,4,5,5,4],[4,3,null,3,4,4,4,4,4,4,3,4,4],
+  [4,2,null,2,4,null,null,4,3,null,2,5,3],[4,4,null,5,4,4,4,5,5,4,4,5,4],
+  [5,3,null,3,5,3,4,5,4,4,5,5,4],[5,4,null,4,4,4,4,4,4,null,3,5,3]
+];
+
+const grid = document.querySelector('.students-grid');
+students.forEach((s,i) => {
+  const parts = s.split(' ');
+  const initials = (parts[0]?.[0]||'') + (parts[1]?.[0]||'');
+  const card = document.createElement('div');
+  card.className = 'student-card';
+  card.innerHTML = `<div class="student-initials">${initials}</div><div><div class="student-num">#${String(i+1).padStart(2,'0')}</div><div class="student-name">${s}</div></div>`;
+  grid.appendChild(card);
+});
+
+const tbl = document.getElementById('gradesTable');
+let html = '<thead><tr><th>ФИО</th>';
+subjects.forEach(s => html += `<th>${s}</th>`);
+html += '</tr></thead><tbody>';
+students.forEach((name, i) => {
+  html += `<tr><td>${name}</td>`;
+  grades[i].forEach(g => {
+    if(g===null) html+=`<td><span class="grade gn">&mdash;</span></td>`;
+    else if(g===5) html+=`<td><span class="grade g5">5</span></td>`;
+    else if(g===4) html+=`<td><span class="grade g4">4</span></td>`;
+    else if(g===3) html+=`<td><span class="grade g3">3</span></td>`;
+    else html+=`<td><span class="grade g2">${g}</span></td>`;
+  });
+  html += '</tr>';
+});
+html += '</tbody>';
+tbl.innerHTML = html;
+
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
+
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-links a');
+window.addEventListener('scroll', () => {
+  let cur = '';
+  sections.forEach(s => { if(scrollY >= s.offsetTop - 100) cur = s.id; });
+  navLinks.forEach(a => { a.classList.toggle('active', a.getAttribute('href') === '#'+cur); });
+});
+</script>
+</body>
+</html>
